@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     Andrea Bittau                    - initial API and implementation
- *     Mukul Gandhi <mukulg@apache.org> - source code reused and adapted for use 
+ *     Mukul Gandhi                     - source code reused and adapted for use 
  *                                        with XalanJ's XPath 3.1 processor.
  *******************************************************************************/
 

@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Mukul Gandhi <mukulg@apache.org> - initial API and implementation
+ *     Mukul Gandhi         - initial API and implementation
  *******************************************************************************/
 
 package xml.xpath31.processor.types;

@@ -3,11 +3,11 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-v10.html.
  *
  * Contributors:
  *     Andrea Bittau                    - initial API and implementation
- *     Mukul Gandhi <mukulg@apache.org> - source code reused and adapted for use 
+ *     Mukul Gandhi                     - source code reused and adapted for use 
  *                                        with XalanJ's XPath 3.1 processor.
  *******************************************************************************/
 
@@ -49,7 +49,7 @@ public class XSString extends XSCtrType {
     }
 
     @Override
-    public ResultSequence constructor(ResultSequence arg) {        
+    public ResultSequence constructor(ResultSequence arg) throws javax.xml.transform.TransformerException {        
         ResultSequence resultSeq = new ResultSequence();
         
         if (arg.size() == 0) {
