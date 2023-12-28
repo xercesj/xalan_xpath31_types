@@ -58,6 +58,9 @@ public class XSQName extends XObject {
 	
 	@Override
     public int hashCode() {
+	   // We need to build somewhat like below, sufficiently
+	   // functionally unique string value to compute the corresponding
+	   // hashCode value thereafter.
 	   String secretStrValue = "{" + prefix + ":" + 
                                      namespaceUri + "}" + 
 			                         localName;
@@ -76,25 +79,38 @@ public class XSQName extends XObject {
 		return isQNameEqual; 
 	}
 	
+	/*
+	 * Get whether, two XSQName values are equal. 
+	 */
 	public boolean equals(XSQName xsQName) {
 		boolean isQNameEqual = true;
 		
 		if (!localName.equals(xsQName.getLocalName())) {
 			isQNameEqual = false;	
 		}
-		else if (((namespaceUri == null) && (xsQName.getNamespaceUri() != null)) ||
-			      (namespaceUri != null) && (xsQName.getNamespaceUri() == null)) {
+		else if (((namespaceUri == null) && (xsQName.getNamespaceUri() != null)) ||				
+			      !namespaceUri.equals(xsQName.getNamespaceUri())) {
+			isQNameEqual = false;
+		}
+		else if ((namespaceUri != null) && (xsQName.getNamespaceUri() == null)) {
+			isQNameEqual = false;	
+		}
+		else if ((namespaceUri != null) && (xsQName.getNamespaceUri() != null) && 
+				 (!namespaceUri.equals(xsQName.getNamespaceUri()))) {
 			isQNameEqual = false;
 		}
 				
 		return isQNameEqual;
 	}
 	
+	/*
+	 * Get custom string value of this object.
+	 */
 	public String str() {
 		String strVal = "";
 		
-		if (prefix != null && !"".equals(prefix)) {
-			strVal = prefix + ":" + localName; 	
+		if (namespaceUri != null) {
+			strVal = '{' + namespaceUri + '}' + localName; 	
 		}
 		else {
 			strVal = localName; 
