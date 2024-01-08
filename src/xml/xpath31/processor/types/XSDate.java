@@ -177,13 +177,36 @@ public class XSDate extends XSCalendarType {
     }
     
     /**
+     * Get the year from the date stored.
+     * 
+     * @return   the year value of the date stored
+     */
+    public int year() {
+	   int year = _calendar.get(Calendar.YEAR);
+	   if (_calendar.get(Calendar.ERA) == GregorianCalendar.BC) {
+		  year *= -1;
+	   }
+
+	   return year;
+	}
+    
+    /**
      * Get the month from the date stored.
      * 
-     * @return    the month value of the date stored
+     * @return   the month value of the date stored
      */
     public int month() {
-        return _calendar.get(Calendar.MONTH) + 1;
+       return _calendar.get(Calendar.MONTH) + 1;
     }
+    
+    /**
+	 * Get the day from the date stored.
+	 * 
+	 * @return   the day value of the date stored
+	 */
+	public int day() {
+	   return _calendar.get(Calendar.DAY_OF_MONTH);
+	}
     
     /**
      * Check whether this XSDate object has an, timezone associated with it.
