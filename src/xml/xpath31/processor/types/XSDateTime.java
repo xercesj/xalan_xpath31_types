@@ -567,7 +567,7 @@ public class XSDateTime extends XSCalendarType {
         return _calendar.get(Calendar.MINUTE);
     }
     
-    public double second() {
+    /*public double second() {
         double secondVal = _calendar.get(Calendar.SECOND);
         double millisecVal = _calendar.get(Calendar.MILLISECOND);
 
@@ -575,6 +575,10 @@ public class XSDateTime extends XSCalendarType {
         secondVal += millisecVal;
         
         return secondVal;
+    }*/
+    
+    public int second() {
+        return _calendar.get(Calendar.SECOND);       
     }
     
     /**
