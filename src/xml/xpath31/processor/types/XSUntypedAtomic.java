@@ -13,6 +13,10 @@
 
 package xml.xpath31.processor.types;
 
+import javax.xml.transform.TransformerException;
+
+import org.apache.xalan.xslt.util.XslTransformEvaluationHelper;
+import org.apache.xpath.XPathCollationSupport;
 import org.apache.xpath.objects.ResultSequence;
 import org.apache.xpath.objects.XObject;
 
@@ -69,6 +73,9 @@ public class XSUntypedAtomic extends XSCtrType {
         return _value;
     }
     
+    /*
+     * Check equality between this XSUntypedAtomic value and an XObject value.  
+     */
     public boolean equals(XObject xObject) {
         boolean isEquals = false;
         
@@ -79,7 +86,45 @@ public class XSUntypedAtomic extends XSCtrType {
            isEquals = _value.equals(((XSUntyped)xObject).stringValue());  
         }
         else {
-           isEquals = _value.equals(xObject.str()); 
+           isEquals = _value.equals(XslTransformEvaluationHelper.getStrVal(xObject)); 
+        }
+        
+        return isEquals;
+    }
+    
+    /*
+     * Check equality between this XSUntypedAtomic value and an XObject value, considering
+     * collation for string comparison. 
+     */
+    public boolean equals(XObject xObject, String collationUri, XPathCollationSupport xpathCollationSupport) 
+    		                                                                        throws TransformerException {
+        boolean isEquals = false;
+        
+        if (collationUri == null) {
+        	isEquals = equals(xObject);  	
+        }
+        else {
+	        if (xObject instanceof XSUntypedAtomic) {
+	           int strComparisonResult = xpathCollationSupport.compareStringsUsingCollation(_value, 
+                                                                               ((XSUntypedAtomic)xObject).stringValue(), collationUri);
+               if (strComparisonResult == 0) {
+                  isEquals = true; 
+               } 
+	        }
+	        else if (xObject instanceof XSUntyped) {
+	           int strComparisonResult = xpathCollationSupport.compareStringsUsingCollation(_value, 
+                                                                                 ((XSUntyped)xObject).stringValue(), collationUri);
+               if (strComparisonResult == 0) {
+                   isEquals = true; 
+               }  
+	        }
+	        else {
+	           int strComparisonResult = xpathCollationSupport.compareStringsUsingCollation(_value, 
+	        		                                                            XslTransformEvaluationHelper.getStrVal(xObject), collationUri);
+               if (strComparisonResult == 0) {
+                  isEquals = true; 
+               }
+	        }
         }
         
         return isEquals;
