@@ -1,51 +1,96 @@
 /*******************************************************************************
- * Copyright (c) 2023 Mukul Gandhi, and others
+ * Copyright (c) 2005, 2010 Andrea Bittau, University College London, and others
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html.
  *
  * Contributors:
- *     Mukul Gandhi       - initial API and implementation
+ *     Andrea Bittau      - initial API and implementation
+ *     Mukul Gandhi       - source code reused and adapted for use 
+ *                          with XalanJ's XPath 3.1 processor.
  *******************************************************************************/
 
 package xml.xpath31.processor.types;
 
-import org.apache.xpath.objects.XObject;
+import javax.xml.transform.TransformerException;
+
+import org.apache.xpath.objects.ResultSequence;
 
 /**
  * An XML Schema data type representation, of the xs:QName datatype.
  */
-public class XSQName extends XObject {
+public class XSQName extends XSCtrType {
 
 	private static final long serialVersionUID = -8325816735017548359L;
 	
-	private String localName;
-	
-	private String namespaceUri;
+	private static final String XS_QNAME = "xs:QName";
 	
 	private String prefix;
 	
-	public XSQName(String localName, String namespaceUri, String prefix) {
-	   this.localName = localName;
-	   this.namespaceUri = namespaceUri;
+	private String localPart;
+	
+	private String namespaceUri;		
+	
+	private boolean _expanded;
+	
+	/**
+	 * Default class constructor.
+	 */
+	public XSQName() { 
+	   // no op
+	}
+	
+	/**
+	 * Class constructor.
+	 */
+	public XSQName(String prefix, String localPart, String namespaceUri) {
 	   this.prefix = prefix;
+	   this.localPart = localPart;
+	   if (namespaceUri != null) {
+	      this.namespaceUri = namespaceUri;
+	      _expanded = true;
+	   }
 	}
-
-	public String getLocalName() {
-		return localName;
+	
+	/**
+	 * Class constructor.
+	 */
+	public XSQName(String prefix, String localPart) {	   
+	   this.prefix = prefix;
+	   this.localPart = localPart;
+	   _expanded = false;
 	}
-
-	public void setLocalName(String localName) {
-		this.localName = localName;
-	}
-
-	public String getNamespaceUri() {
-		return namespaceUri;
-	}
-
-	public void setNamespaceUri(String namespaceUri) {
-		this.namespaceUri = namespaceUri;
+	
+	/**
+	 * Class constructor.
+	 */
+	public XSQName(String localPart) {
+	   this.localPart = localPart;
+	}		
+	
+	@Override
+	public ResultSequence constructor(ResultSequence arg) throws TransformerException {
+        ResultSequence resultSeq = new ResultSequence();
+        
+        if (arg.size() == 0) {
+           return resultSeq;     
+        }
+        
+        XSAnyType xsAnyType = (XSAnyType)arg.item(0);
+        
+        if ((xsAnyType instanceof XSString) || (xsAnyType instanceof XSQName)) {
+        	XSQName xsQName = parseQName(xsAnyType.stringValue());
+        	if (xsQName != null) {
+        	   resultSeq.add(xsQName);
+        	}
+        }
+        else {
+        	throw new TransformerException("FORG0006 : A xs:QName value can be constructed "
+        			                            + "either using xs:string or an xs:QName value");
+        }
+           
+        return resultSeq;
 	}
 
 	public String getPrefix() {
@@ -56,16 +101,32 @@ public class XSQName extends XObject {
 		this.prefix = prefix;
 	}
 	
+	public String getLocalPart() {
+		return localPart;
+	}
+
+	public void setLocalPart(String localPart) {
+		this.localPart = localPart;
+	}
+	
+	public String getNamespaceUri() {
+		return namespaceUri;
+	}
+
+	public void setNamespaceUri(String namespaceUri) {
+		this.namespaceUri = namespaceUri;
+	}
+	
 	@Override
     public int hashCode() {
-	   // We need to build somewhat like below, sufficiently
-	   // functionally unique string value to compute the corresponding
+	   // We need to form somewhat like below, xs:QName object's
+	   // sufficiently unique string value and get the corresponding 
 	   // hashCode value thereafter.
-	   String secretStrValue = "{" + prefix + ":" + 
+	   String uniqueStrValue = "{" + prefix + ":" + 
                                      namespaceUri + "}" + 
-			                         localName;
+                                     localPart;
 	   
-	   return secretStrValue.hashCode();
+	   return uniqueStrValue.hashCode();
 	}
 	
 	@Override
@@ -80,12 +141,12 @@ public class XSQName extends XObject {
 	}
 	
 	/*
-	 * Get whether, two XSQName values are equal. 
+	 * Check whether, two xs:QName values are equal. 
 	 */
 	public boolean equals(XSQName xsQName) {
 		boolean isQNameEqual = true;
 		
-		if (!localName.equals(xsQName.getLocalName())) {
+		if (!localPart.equals(xsQName.getLocalPart())) {
 			isQNameEqual = false;	
 		}
 		else if (((namespaceUri == null) && (xsQName.getNamespaceUri() != null)) ||				
@@ -103,20 +164,89 @@ public class XSQName extends XObject {
 		return isQNameEqual;
 	}
 	
-	/*
-	 * Get custom string value of this object.
-	 */
-	public String str() {
-		String strVal = "";
+
+	@Override
+	public String typeName() {
+		return "QName";
+	}
+
+	@Override
+	public String stringType() {
+		return XS_QNAME;
+	}
+
+	@Override
+	public String stringValue() {
+        String strVal = "";
 		
 		if (namespaceUri != null) {
-			strVal = '{' + namespaceUri + '}' + localName; 	
+			strVal = '{' + namespaceUri + '}' + localPart; 	
 		}
 		else {
-			strVal = localName; 
+			strVal = localPart; 
 		}
 		
 		return strVal;
 	}
+	
+	/**
+	 * Construct an XSQName object, by parsing a provided string value
+	 * as an argument to this method.
+	 */
+	public static XSQName parseQName(String str) {
+	   XSQName qNameValue = null;
+	   
+	   int colonCharOccurenceCount = 0;
+		
+	   char[] strChrArr = str.toCharArray();		
+	   for (int chrIndx = 0; chrIndx < strChrArr.length; chrIndx++) {
+		  if (strChrArr[chrIndx] == ':') {
+			  colonCharOccurenceCount += 1;  
+		  }
+	   }
+		
+	   if (colonCharOccurenceCount > 1) {
+	      return null;
+	   }
+	   
+	   String[] strTokens = str.split(":");
+	   
+	   if (strTokens.length == 1) {
+		  qNameValue = new XSQName(strTokens[0]);
+	   }
+		
+	   if (strTokens.length == 2) {
+		  qNameValue = new XSQName(strTokens[0], strTokens[1]);
+	   }
+	   
+	   return qNameValue;
+	}
+	
+	/**
+	 * Check whether this xs:QName object has a 
+	 * non null expanded name. 
+	 */
+	public boolean isExpanded() {
+	   return _expanded;
+	}
+	
+	/**
+	 * Get this xs:QName object's expanded name. 
+	 */
+	public String getExpandedName() {
+	   String expandedName = "";
+	   
+	   if (namespaceUri != null) {
+		  expandedName += namespaceUri + ":";
+	   }
+	   
+	   expandedName = expandedName + localPart;
+	   
+	   return expandedName;
+	}
+	
+	public int getType() {
+        return CLASS_XS_QNAME;
+    }
 
 }
